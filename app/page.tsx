@@ -63,7 +63,11 @@ export default function Home() {
             rel="noopener noreferrer"
             className="hover:text-sky-400 transition"
           >
-            <DollarSign className="w-5 h-5" />
+            <img
+              src="/raidenx-logo.jpg"
+              alt="RaidenX Logo"
+              className="w-5 h-5 rounded"
+            />
           </a>
         </div>
       </footer>
