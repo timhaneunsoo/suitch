@@ -198,97 +198,62 @@ export default function CrossyRoadsGame() {
     return tree
   }
 
-  function createPsyduck() {
-    const psyduck = new THREE.Group()
-  
-    const bodyYellow = new THREE.MeshPhongMaterial({ color: 0xffeb73, flatShading: true })
-    const orange = new THREE.MeshPhongMaterial({ color: 0xffa500, flatShading: true })
-    const white = new THREE.MeshPhongMaterial({ color: 0xffffff })
-    const black = new THREE.MeshPhongMaterial({ color: 0x000000 })
-  
-    // Body (shorter and wider)
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(12 * zoom, 13 * zoom, 14 * zoom),
-      bodyYellow
+  function createSwitch() {
+    const switchGroup = new THREE.Group()
+
+    const screenMaterial = new THREE.MeshPhongMaterial({ color: 0x111111, flatShading: true })
+    const redMaterial = new THREE.MeshPhongMaterial({ color: 0xff3c3c, flatShading: true })
+    const blueMaterial = new THREE.MeshPhongMaterial({ color: 0x3c9cff, flatShading: true })
+    const blackMaterial = new THREE.MeshPhongMaterial({ color: 0x000000, flatShading: true })
+
+    // Screen
+    const screen = new THREE.Mesh(
+      new THREE.BoxGeometry(30 * zoom, 15 * zoom, 2 * zoom),
+      screenMaterial
     )
-    body.position.z = 7 * zoom
-    psyduck.add(body)
-  
-    // Head (bigger and rounder)
-    const head = new THREE.Mesh(
-      new THREE.BoxGeometry(16 * zoom, 15 * zoom, 16 * zoom),
-      bodyYellow
+    screen.position.z = 8 * zoom
+    switchGroup.add(screen)
+
+    // Left Joy-Con
+    const leftJoyCon = new THREE.Mesh(
+      new THREE.BoxGeometry(5 * zoom, 15 * zoom, 2.5 * zoom),
+      redMaterial
     )
-    head.position.z = 18 * zoom
-    psyduck.add(head)
-  
-    // Eyes (larger, closer)
-    const leftEyeWhite = new THREE.Mesh(
-      new THREE.BoxGeometry(4.5 * zoom, 4.5 * zoom, 1.5 * zoom),
-      white
+    leftJoyCon.position.set(-17.5 * zoom, 0, 8 * zoom)
+    switchGroup.add(leftJoyCon)
+
+    // Right Joy-Con
+    const rightJoyCon = new THREE.Mesh(
+      new THREE.BoxGeometry(5 * zoom, 15 * zoom, 2.5 * zoom),
+      blueMaterial
     )
-    leftEyeWhite.position.set(-2.5 * zoom, 4.5 * zoom, 23 * zoom)
-    psyduck.add(leftEyeWhite)
-  
-    const leftPupil = new THREE.Mesh(
-      new THREE.BoxGeometry(1.2 * zoom, 1.2 * zoom, 1.2 * zoom),
-      black
+    rightJoyCon.position.set(17.5 * zoom, 0, 8 * zoom)
+    switchGroup.add(rightJoyCon)
+
+    // Left stick
+    const leftStick = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8 * zoom, 0.8 * zoom, 0.5 * zoom, 16),
+      blackMaterial
     )
-    leftPupil.position.set(-2.5 * zoom, 4.5 * zoom, 24 * zoom)
-    psyduck.add(leftPupil)
-  
-    const rightEyeWhite = leftEyeWhite.clone()
-    rightEyeWhite.position.x = 2.5 * zoom
-    psyduck.add(rightEyeWhite)
-  
-    const rightPupil = leftPupil.clone()
-    rightPupil.position.x = 2.5 * zoom
-    psyduck.add(rightPupil)
-  
-    // Beak (flat and wide)
-    const beak = new THREE.Mesh(
-      new THREE.BoxGeometry(8 * zoom, 3 * zoom, 2 * zoom),
-      orange
-    )
-    beak.position.set(0, 6 * zoom, 20.5 * zoom)
-    psyduck.add(beak)
-  
-    // Arms (flippers)
-    const leftArm = new THREE.Mesh(
-      new THREE.BoxGeometry(2 * zoom, 5 * zoom, 2 * zoom),
-      bodyYellow
-    )
-    leftArm.position.set(-7 * zoom, 0, 11 * zoom)
-    psyduck.add(leftArm)
-  
-    const rightArm = leftArm.clone()
-    rightArm.position.x = 7 * zoom
-    psyduck.add(rightArm)
-  
-    // Feet
-    const leftFoot = new THREE.Mesh(
-      new THREE.BoxGeometry(4 * zoom, 6 * zoom, 2 * zoom),
-      orange
-    )
-    leftFoot.position.set(-3 * zoom, 0, 1 * zoom)
-    psyduck.add(leftFoot)
-  
-    const rightFoot = leftFoot.clone()
-    rightFoot.position.x = 3 * zoom
-    psyduck.add(rightFoot)
-  
-    // Longer hair tufts (more iconic)
-    for (let i = -1; i <= 1; i++) {
-      const tuft = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5 * zoom, 0.5 * zoom, 6 * zoom),
-        black
-      )
-      tuft.position.set(i * 1.5 * zoom, 0, 28 * zoom)
-      psyduck.add(tuft)
-    }
-  
-    return psyduck
-  }  
+    leftStick.rotation.x = Math.PI / 2
+    leftStick.position.set(-17.5 * zoom, 4 * zoom, 9.5 * zoom)
+    switchGroup.add(leftStick)
+
+    // Right stick
+    const rightStick = leftStick.clone()
+    rightStick.position.set(17.5 * zoom, 4 * zoom, 9.5 * zoom)
+    switchGroup.add(rightStick)
+
+    // Set shadow properties
+    switchGroup.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.castShadow = true
+        obj.receiveShadow = true
+      }
+    })
+
+    return switchGroup
+  }
 
   function createRoad() {
     const road = new THREE.Group()
@@ -477,7 +442,7 @@ export default function CrossyRoadsGame() {
     scene.add(backLight)
 
     // Create psyduck
-    const psyduck = createPsyduck()
+    const psyduck = createSwitch()
     scene.add(psyduck)
     dirLight.target = psyduck
 

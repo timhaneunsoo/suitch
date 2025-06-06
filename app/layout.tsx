@@ -7,9 +7,12 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Crossy Roads Game",
-  description: "A 3D Crossy Roads game built with Next.js and Three.js",
-    generator: 'v0.dev'
+  title: "$SUITCH",
+  description: "The switch of SUI",
+  generator: 'v0.dev',
+  icons: {
+    icon: "/suitch-coin.png",
+  }
 }
 
 export default function RootLayout({
