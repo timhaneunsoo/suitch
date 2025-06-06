@@ -58,7 +58,7 @@ export default function Home() {
             <Twitter className="w-5 h-5" />
           </a>
           <a
-            href="https://moonbags.io/bondingcurve/coins/0xb2c2acd07698365e21d8e2a0a80f8129712a5772be5ef2f8daa1d1b97d29325e::suitch::SUITCH"
+            href="https://raidenx.io/sui/moonbags-suitch-sui-259917"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-sky-400 transition"
