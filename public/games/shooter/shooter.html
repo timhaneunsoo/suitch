@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Samus Shooter - SUITCH Edition</title>
+  <link rel="stylesheet" href="suitch-style.css">
+</head>
+<body>
+  <!-- Top information bar -->
+  <header class="suitch-header">
+    <div class="title">
+      🚀 Samus Shooter - SUITCH Edition
+      <span class="alpha-badge">Alpha v0.1</span>
+    </div>
+    <div class="stats">
+      <div class="stat">Distance: <span id="distance">0</span> m</div>
+      <div class="stat">Coins: <span id="coins">0</span></div>
+      <div class="stat">Status: <span id="status">Ready</span></div>
+      <div class="stat home-link" style="cursor: pointer; " onclick="goHome()">Home</div>
+    </div>
+  </header>
+
+  <!-- Main container with canvas and leaderboard -->
+  <div class="game-container">
+    <!-- Game canvas -->
+    <main class="game-wrapper">
+      <canvas id="gameCanvas" width="800" height="480"></canvas>
+    </main>
+
+    <!-- Leaderboard -->
+    <aside class="leaderboard">
+      <h2>🏆 Leaderboard</h2>
+      <ul class="leaderboard-list" id="leaderboardList">
+        <!-- Scores will be added dynamically here -->
+      </ul>
+    </aside>
+  </div>
+
+  <!-- Bottom controls bar -->
+  <footer class="suitch-footer">
+    <div class="controls">
+      <span>Mouse: Move</span>
+      <span>SPACE: Restart</span>
+      <span>Auto-Fire: Enabled</span>
+    </div>
+    <div class="version-info">
+      Alpha Release • Build 2024.01 • Anti-Cheat Enabled
+    </div>
+  </footer>
+
+  <!-- Name input modal -->
+  <div class="name-input-modal" id="nameInputModal">
+    <div class="name-input-content">
+      <h2>🎉 New High Score!</h2>
+      <div class="score-display">
+        Final Score: <span id="finalScoreDisplay">0</span>
+      </div>
+      <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+      <br>
+      <button onclick="saveScore()">Save Score</button>
+      <button onclick="skipSave()">Skip</button>
+    </div>
+  </div>
+
+  <!-- Load security FIRST -->
+  <script src="game-security.js"></script>
+
+  <!-- Game script -->
+  <script src="Shooter.js"></script>
+  
+  <script>
+    // Leaderboard management
+    let leaderboard = JSON.parse(localStorage.getItem('gameLeaderboard')) || [];
+    let currentGameScore = 0; // Global variable to store score
+
+    // Display leaderboard
+    function displayLeaderboard() {
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      
+      // Sort by descending score and take top 10
+      const sortedScores = leaderboard.sort((a, b) => b.score - a.score).slice(0, 10);
+      
+      if (sortedScores.length === 0) {
+        list.innerHTML = '<li style="text-align: center; color: #888; padding: 20px;">No scores yet!<br>Be the first to play!</li>';
+        return;
+      }
+      
+      sortedScores.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.className = 'leaderboard-item';
+        li.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            <div class="rank">${index + 1}</div>
+            <div class="player-name">${entry.name}</div>
+          </div>
+          <div class="player-score">${entry.score.toLocaleString()}</div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // Check if score deserves to be saved
+    function shouldSaveScore(score) {
+      return leaderboard.length < 10 || score > (leaderboard.sort((a, b) => b.score - a.score)[9]?.score || 0);
+    }
+
+    // Show name input modal
+    function showNameInput(score) {
+      console.log("Showing name input for score:", score); // Debug
+      currentGameScore = score; // Store score
+      document.getElementById('finalScoreDisplay').textContent = score.toLocaleString();
+      document.getElementById('nameInputModal').style.display = 'flex';
+      document.getElementById('playerNameInput').focus();
+    }
+
+    // Save score - CORRECTED VERSION
+    function saveScore() {
+      const name = document.getElementById('playerNameInput').value.trim();
+      if (!name) {
+        alert('Please enter your name!');
+        return;
+      }
+      
+      // Use currentGameScore directly instead of parsing display
+      const score = currentGameScore;
+      console.log("Saving score:", score, "for player:", name); // Debug
+      
+      // Add new score
+      leaderboard.push({ name, score, date: new Date().toLocaleDateString() });
+      
+      // Sort and keep only top 10
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 10);
+      
+      // Save to localStorage
+      localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboard));
+      
+      // Update display
+      displayLeaderboard();
+      
+      // Close modal
+      hideNameInput();
+    }
+
+    // Skip save
+    function skipSave() {
+      hideNameInput();
+    }
+
+    // Hide modal
+    function hideNameInput() {
+      document.getElementById('nameInputModal').style.display = 'none';
+      document.getElementById('playerNameInput').value = '';
+    }
+
+    // Handle Enter key in input
+    document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        saveScore();
+      }
+    });
+
+    // Function called by game on game over
+    function onGameOver(finalScore) {
+      console.log("Game Over - Final Score:", finalScore); // Debug
+      setTimeout(() => {
+        if (shouldSaveScore(finalScore)) {
+          showNameInput(finalScore);
+        }
+      }, 1000); // Delay to let see game over screen
+    }
+
+    // Initialize leaderboard display on load
+    displayLeaderboard();
+  </script>
+
+  <script>
+    function goHome() {
+      if (window.top !== window.self) {
+        window.top.location.href = "/";
+      } else {
+        window.location.href = "/";
+      }
+    }
+  </script>
+</body>
+</html>

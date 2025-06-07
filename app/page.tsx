@@ -34,6 +34,14 @@ export default function Home() {
               ▸ Crossy Roads
             </Link>
           </li>
+          <li>
+            <Link
+              href="/games/shooter"
+              className="text-sky-400 hover:underline hover:text-sky-300 transition"
+            >
+              ▸ Samus Shooter
+            </Link>
+          </li>
           <li className="text-gray-500 italic">More games coming soon...</li>
         </ul>
       </section>
