@@ -25,7 +25,7 @@ export default function CrossyRoadsGame() {
     gameOver: false,
   })
 
-  const zoom = 2
+  const zoom = 1
   const psyduckSize = 15
   const positionWidth = 42
   const columns = 17
@@ -712,12 +712,6 @@ export default function CrossyRoadsGame() {
         <div className="text-xl font-bold">Score: {score}</div>
       </div>
 
-      <div className="absolute top-4 right-4 z-10">
-        <Button asChild className="px-4 py-2 bg-black/50 hover:bg-black/70 text-white">
-          <Link href="/">Go Home</Link>
-        </Button>
-      </div>
-
       {gameOver && (
         <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/70">
           <div className="bg-gray-800 p-8 rounded-lg text-center">
@@ -726,9 +720,6 @@ export default function CrossyRoadsGame() {
             <div className="flex justify-center gap-4 mt-4">
               <Button onClick={() => initializeGame()} className="bg-green-600 hover:bg-green-700">
                 <RotateCcw className="mr-2 h-4 w-4" /> Play Again
-              </Button>
-              <Button asChild className="bg-blue-600 hover:bg-blue-700">
-                <Link href="/">Back to Home</Link>
               </Button>
             </div>
           </div>

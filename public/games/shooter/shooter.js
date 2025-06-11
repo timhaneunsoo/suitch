@@ -1271,7 +1271,8 @@ function init() {
   // Mouse handling
   game.canvas.addEventListener('mousemove', e => {
     const rect = game.canvas.getBoundingClientRect();
-    game.mouseY = e.clientY - rect.top;
+    const scaleY = game.canvas.height / rect.height;
+    game.mouseY = (e.clientY - rect.top) * scaleY;
   });
 
   // Keyboard handling (optional)
