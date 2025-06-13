@@ -176,52 +176,69 @@ export default function LoungeRoom({
     }
   }, [playerX, playerY, playerName, spriteName, activeGame])
 
-  useEffect(() => {
-    const playersRef = ref(db, 'players')
-    const seenMessages = new Map<string, { text: string; timestamp: number }>()
-    const lastTimestamps = new Map<string, number>()
+useEffect(() => {
+  const playersRef = ref(db, 'players')
+  const seenMessages = new Map<string, { text: string; timestamp: number }>()
 
-    onValue(playersRef, (snapshot) => {
-      const val = snapshot.val() || {}
-      const now = Date.now()
+  const throttledUpdate = throttle((val: any) => {
+    const now = Date.now()
 
-      const updatedPlayers = Object.entries(val)
-        .filter(([id]) => id !== playerId.current)
-        .map(([id, data]: any) => {
-          const existing = seenMessages.get(id)
-          if (data.message && (!existing || existing.timestamp !== data.message.timestamp)) {
-            seenMessages.set(id, data.message)
-            setTimeout(() => {
-              if (seenMessages.get(id)?.timestamp === data.message.timestamp) {
-                seenMessages.set(id, null as any)
-                setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, message: null } : p)))
-              }
-            }, 4000)
-          }
+    const updatedPlayers = Object.entries(val)
+      .filter(([id]) => id !== playerId.current)
+      .map(([id, data]: any) => {
+        // Only process if timestamp is recent (within 5 seconds)
+        if (data.timestamp && now - data.timestamp > 5000) {
+          return null
+        }
+        
+        const existing = seenMessages.get(id)
+        if (data.message && (!existing || existing.timestamp !== data.message.timestamp)) {
+          seenMessages.set(id, data.message)
+          setTimeout(() => {
+            if (seenMessages.get(id)?.timestamp === data.message.timestamp) {
+              seenMessages.set(id, null as any)
+              setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, message: null } : p)))
+            }
+          }, 4000)
+        }
 
-          const lastSeen = lastTimestamps.get(id) || 0
-          lastTimestamps.set(id, data.timestamp)
+        return {
+          id,
+          ...data,
+          message: seenMessages.get(id),
+          dir: data.dir ?? 'idle',
+          frame: data.frame ?? 1,
+        }
+      })
+      .filter(Boolean) // Remove null entries
 
-          return {
-            id,
-            ...data,
-            message: seenMessages.get(id),
-            dir: data.dir ?? 'idle',
-            frame: data.frame ?? 1,
-          }
-        })
-
-      setPlayers((prevPlayers) =>
-        updatedPlayers.map((newPlayer) => {
-          const prev = prevPlayers.find((p) => p.id === newPlayer.id)
-          return {
-            ...prev,
-            ...newPlayer,
-          }
-        })
-      )
+    setPlayers((prevPlayers) => {
+      // Only update if there are actual changes
+      const hasChanges = updatedPlayers.some((newPlayer) => {
+        const prev = prevPlayers.find((p) => p.id === newPlayer.id)
+        return !prev || 
+               prev.x !== newPlayer.x || 
+               prev.y !== newPlayer.y || 
+               prev.dir !== newPlayer.dir ||
+               prev.timestamp !== newPlayer.timestamp
+      })
+      
+      if (!hasChanges && prevPlayers.length === updatedPlayers.length) {
+        return prevPlayers // No changes, return same reference
+      }
+      
+      return updatedPlayers.map((newPlayer) => {
+        const prev = prevPlayers.find((p) => p.id === newPlayer.id)
+        return { ...prev, ...newPlayer }
+      })
     })
-  }, [])
+  }, 50) // Throttle Firebase updates to every 50ms
+
+  onValue(playersRef, (snapshot) => {
+    const val = snapshot.val() || {}
+    throttledUpdate(val)
+  })
+}, [])
 
   return (
     <div className="w-full h-screen overflow-hidden bg-[#ffedd5] relative">
