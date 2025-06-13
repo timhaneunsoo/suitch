@@ -138,61 +138,54 @@ function Player({
     setPixelY?.(posY)
   }, [posX, posY])
 
-  useEffect(() => {
+useEffect(() => {
     if (!isRemote) return
-    remoteQueue.current.push({ x: x * TILE_SIZE, y: y * TILE_SIZE, dir: dirProp ?? 'idle' })
-  }, [x, y, dirProp, isRemote])
 
-  useEffect(() => {
-    if (!isRemote) return
-    let rafId: number
-
-    const processQueue = () => {
-      if (moving.current) {
-        rafId = requestAnimationFrame(processQueue)
-        return
-      }
-      const next = remoteQueue.current.shift()
-      if (!next) {
-        rafId = requestAnimationFrame(processQueue)
-        return
-      }
-
-      const { x: toX, y: toY, dir: newDir } = next
-      const fromX = currentPos.current.x
-      const fromY = currentPos.current.y
-
-      setDir(newDir)
-      moving.current = true
-
-      const startTime = performance.now()
-
-      const animateStep = (now: number) => {
-        const elapsed = now - startTime
-        const progress = Math.min(elapsed / REMOTE_ANIMATION_DURATION, 1)
-        setPosX(fromX + (toX - fromX) * progress)
-        setPosY(fromY + (toY - fromY) * progress)
-        setFrame(Math.floor(progress * FRAME_COUNT) % FRAME_COUNT + 1)
-
-        if (progress < 1) {
-          rafId = requestAnimationFrame(animateStep)
-        } else {
-          currentPos.current = { x: toX, y: toY }
-          setFrame(1)
-          if (remoteQueue.current.length === 0) {
-            setDir('idle')
-          }
-          moving.current = false
-          rafId = requestAnimationFrame(processQueue)
-        }
-      }
-
-      rafId = requestAnimationFrame(animateStep)
+    const targetX = x * TILE_SIZE
+    const targetY = y * TILE_SIZE
+    
+    // Si pas de mouvement, pas d'animation
+    if (Math.abs(posX - targetX) < 2 && Math.abs(posY - targetY) < 2) {
+      setPosX(targetX)
+      setPosY(targetY)
+      setDir(dirProp || 'idle')
+      return
     }
 
-    rafId = requestAnimationFrame(processQueue)
+    let rafId: number
+    const startTime = performance.now()
+    const startX = posX
+    const startY = posY
+    const duration = 200
+    
+    // KEEP THE CURRENT FRAME
+    let currentFrame = frame
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      const newX = startX + (targetX - startX) * progress
+      const newY = startY + (targetY - startY) * progress
+      
+      setPosX(newX)
+      setPosY(newY)
+      setDir(dirProp || 'idle')
+      
+      // Continue frame and no reset
+      if (Math.floor(now / 100) !== Math.floor((now - 16) / 100)) {
+        currentFrame = (currentFrame % FRAME_COUNT) + 1
+        setFrame(currentFrame)
+      }
+      
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate)
+      }
+    }
+    
+    rafId = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(rafId)
-  }, [isRemote])
+  }, [x, y, dirProp, isRemote, frame])
 
   useEffect(() => {
     if (isRemote) return
@@ -293,27 +286,17 @@ function Player({
     }
   }, [posX, mapWidth, mapHeight, collisionSet, isRemote])
 
-  useEffect(() => {
+useEffect(() => {
+    if (!isRemote) return
+    
     const iv = setInterval(() => {
-      const currentDir = isRemote ? dirProp ?? 'idle' : dir
-      if (currentDir === 'idle') {
+      if ((dirProp ?? 'idle') === 'idle') {
         setFrame(p => (p % FRAME_COUNT) + 1)
       }
     }, IDLE_FRAME_DELAY)
+    
     return () => clearInterval(iv)
-  }, [dir, dirProp, isRemote])
-
-  useEffect(() => {
-    if (!isRemote) return
-    const timeout = setTimeout(() => {
-      remoteQueue.current.push({
-        x: currentPos.current.x,
-        y: currentPos.current.y,
-        dir: 'idle',
-      })
-    }, 500)
-    return () => clearTimeout(timeout)
-  }, [dirProp])
+  }, [dirProp, isRemote])
 
   const [lastNonIdleDir, setLastNonIdleDir] = useState<Direction>('front')
 
