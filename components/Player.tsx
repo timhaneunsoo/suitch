@@ -138,61 +138,111 @@ function Player({
     setPixelY?.(posY)
   }, [posX, posY])
 
-  useEffect(() => {
-    if (!isRemote) return
-    remoteQueue.current.push({ x: x * TILE_SIZE, y: y * TILE_SIZE, dir: dirProp ?? 'idle' })
-  }, [x, y, dirProp, isRemote])
+useEffect(() => {
+  if (!isRemote) return
+  
+  const newTarget = { x: x * TILE_SIZE, y: y * TILE_SIZE, dir: dirProp ?? 'idle' }
+  
+  // Only add to queue if position actually changed
+  const lastInQueue = remoteQueue.current[remoteQueue.current.length - 1]
+  if (!lastInQueue || 
+      Math.abs(lastInQueue.x - newTarget.x) > 1 || 
+      Math.abs(lastInQueue.y - newTarget.y) > 1 ||
+      lastInQueue.dir !== newTarget.dir) {
+    
+    // Limit queue size to prevent lag
+    if (remoteQueue.current.length > 3) {
+      remoteQueue.current = remoteQueue.current.slice(-2)
+    }
+    
+    remoteQueue.current.push(newTarget)
+  }
+}, [x, y, dirProp, isRemote])
 
-  useEffect(() => {
-    if (!isRemote) return
-    let rafId: number
+useEffect(() => {
+  if (!isRemote) return
+  
+  // Clear the queue and set immediate position if this is the first update
+  if (remoteQueue.current.length === 0) {
+    const newX = x * TILE_SIZE
+    const newY = y * TILE_SIZE
+    setPosX(newX)
+    setPosY(newY)
+    currentPos.current = { x: newX, y: newY }
+    if (dirProp) setDir(dirProp)
+    return
+  }
 
-    const processQueue = () => {
-      if (moving.current) {
-        rafId = requestAnimationFrame(processQueue)
-        return
-      }
-      const next = remoteQueue.current.shift()
-      if (!next) {
-        rafId = requestAnimationFrame(processQueue)
-        return
-      }
+  let rafId: number
+  let isAnimating = false
 
-      const { x: toX, y: toY, dir: newDir } = next
-      const fromX = currentPos.current.x
-      const fromY = currentPos.current.y
-
-      setDir(newDir)
-      moving.current = true
-
-      const startTime = performance.now()
-
-      const animateStep = (now: number) => {
-        const elapsed = now - startTime
-        const progress = Math.min(elapsed / REMOTE_ANIMATION_DURATION, 1)
-        setPosX(fromX + (toX - fromX) * progress)
-        setPosY(fromY + (toY - fromY) * progress)
-        setFrame(Math.floor(progress * FRAME_COUNT) % FRAME_COUNT + 1)
-
-        if (progress < 1) {
-          rafId = requestAnimationFrame(animateStep)
-        } else {
-          currentPos.current = { x: toX, y: toY }
-          setFrame(1)
-          if (remoteQueue.current.length === 0) {
-            setDir('idle')
-          }
-          moving.current = false
-          rafId = requestAnimationFrame(processQueue)
-        }
-      }
-
-      rafId = requestAnimationFrame(animateStep)
+  const processQueue = () => {
+    if (isAnimating || remoteQueue.current.length === 0) {
+      rafId = requestAnimationFrame(processQueue)
+      return
     }
 
-    rafId = requestAnimationFrame(processQueue)
-    return () => cancelAnimationFrame(rafId)
-  }, [isRemote])
+    const next = remoteQueue.current.shift()
+    if (!next) {
+      rafId = requestAnimationFrame(processQueue)
+      return
+    }
+
+    const { x: toX, y: toY, dir: newDir } = next
+    const fromX = currentPos.current.x
+    const fromY = currentPos.current.y
+
+    // Skip animation if already at target position
+    if (Math.abs(fromX - toX) < 1 && Math.abs(fromY - toY) < 1) {
+      rafId = requestAnimationFrame(processQueue)
+      return
+    }
+
+    setDir(newDir)
+    isAnimating = true
+
+    const startTime = performance.now()
+    let lastFrameTime = startTime
+
+    const animateStep = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / REMOTE_ANIMATION_DURATION, 1)
+      
+      // Smooth interpolation
+      const newX = fromX + (toX - fromX) * progress
+      const newY = fromY + (toY - fromY) * progress
+      
+      setPosX(newX)
+      setPosY(newY)
+      
+      // Update frame only every 100ms to avoid flickering
+      if (now - lastFrameTime > 100) {
+        setFrame(prev => (prev % FRAME_COUNT) + 1)
+        lastFrameTime = now
+      }
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animateStep)
+      } else {
+        currentPos.current = { x: toX, y: toY }
+        setFrame(1)
+        if (remoteQueue.current.length === 0) {
+          setDir('idle')
+        }
+        isAnimating = false
+        rafId = requestAnimationFrame(processQueue)
+      }
+    }
+
+    rafId = requestAnimationFrame(animateStep)
+  }
+
+  rafId = requestAnimationFrame(processQueue)
+  return () => {
+    cancelAnimationFrame(rafId)
+    isAnimating = false
+  }
+}, [x, y, dirProp, isRemote])
 
   useEffect(() => {
     if (isRemote) return
