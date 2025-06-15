@@ -26,6 +26,7 @@ interface PlayerProps {
   setPixelX?: (val: number) => void
   setPixelY?: (val: number) => void
   message?: { text: string; timestamp: number } | null
+  movementOverride?: string | null;
 }
 
 export default function LocalPlayer({
@@ -41,6 +42,7 @@ export default function LocalPlayer({
   setPixelX,
   setPixelY,
   message,
+  movementOverride,
 }: PlayerProps) {
   const [dir, setDir] = useState<Direction>('idle')
   const [frame, setFrame] = useState(1)
@@ -53,6 +55,11 @@ export default function LocalPlayer({
   const lastSent = useRef(0)
   const lastSentState = useRef<string>('')
   const playerId = useRef<string>('')
+  const overrideRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    overrideRef.current = movementOverride ?? null
+  }, [movementOverride])
 
   useEffect(() => {
     let id = localStorage.getItem('playerId')
@@ -94,16 +101,20 @@ export default function LocalPlayer({
       let dy = 0
       let newDir: Direction = 'idle'
 
-      if (keysHeld.current.has('ArrowUp') || keysHeld.current.has('w')) {
+      const inputKey = overrideRef.current || Array.from(keysHeld.current).find((k) =>
+        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(k)
+      )
+
+      if (inputKey === 'ArrowUp' || inputKey === 'w') {
         dy = -STEP_SIZE
         newDir = 'back'
-      } else if (keysHeld.current.has('ArrowDown') || keysHeld.current.has('s')) {
+      } else if (inputKey === 'ArrowDown' || inputKey === 's') {
         dy = STEP_SIZE
         newDir = 'front'
-      } else if (keysHeld.current.has('ArrowLeft') || keysHeld.current.has('a')) {
+      } else if (inputKey === 'ArrowLeft' || inputKey === 'a') {
         dx = -STEP_SIZE
         newDir = 'left'
-      } else if (keysHeld.current.has('ArrowRight') || keysHeld.current.has('d')) {
+      } else if (inputKey === 'ArrowRight' || inputKey === 'd') {
         dx = STEP_SIZE
         newDir = 'right'
       }
@@ -180,7 +191,7 @@ export default function LocalPlayer({
       window.removeEventListener('keyup', handleKeyUp)
       cancelAnimationFrame(animationFrame)
     }
-  }, [frame])
+  }, [frame, movementOverride])
 
   const spriteFolder = dir === 'idle' ? 'idle' : `${dir}Walk`
 

@@ -8,6 +8,7 @@ import { ref, onValue, set, onDisconnect, update } from 'firebase/database'
 import { throttle } from 'lodash'
 import { decor, DecorItem } from '@/utils/decor'
 import { useRouter } from 'next/navigation'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const TILE_SIZE = 32
 const rows = 20
@@ -38,6 +39,8 @@ export default function LoungeRoom({
   const [loading, setLoading] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const router = useRouter()
+  const isMobile = useIsMobile()
+  const [mobileMove, setMobileMove] = useState<string | null>(null)
 
   const mapRef = useRef<HTMLDivElement>(null)
   const playerId = useRef<string>(
@@ -277,6 +280,7 @@ useEffect(() => {
             setPixelX={setPlayerPixelX}
             setPixelY={setPlayerPixelY}
             message={submittedMessage}
+            movementOverride={mobileMove}
           />
         )}
       </div>
@@ -432,6 +436,53 @@ useEffect(() => {
                 Send
               </button>
             </form>
+          </div>
+        )}
+        {isMobile && !activeGame && (
+          <div className="absolute bottom-20 right-6 z-[9999]">
+            <div className="grid grid-cols-3 gap-2">
+              <div />
+              <button
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full"
+                onMouseDown={() => setMobileMove("ArrowUp")}
+                onMouseUp={() => setMobileMove(null)}
+                onTouchStart={() => setMobileMove("ArrowUp")}
+                onTouchEnd={() => setMobileMove(null)}
+              >
+                ↑
+              </button>
+              <div />
+              <button
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full"
+                onMouseDown={() => setMobileMove("ArrowLeft")}
+                onMouseUp={() => setMobileMove(null)}
+                onTouchStart={() => setMobileMove("ArrowLeft")}
+                onTouchEnd={() => setMobileMove(null)}
+              >
+                ←
+              </button>
+              <div />
+              <button
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full"
+                onMouseDown={() => setMobileMove("ArrowRight")}
+                onMouseUp={() => setMobileMove(null)}
+                onTouchStart={() => setMobileMove("ArrowRight")}
+                onTouchEnd={() => setMobileMove(null)}
+              >
+                →
+              </button>
+              <div />
+              <button
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full"
+                onMouseDown={() => setMobileMove("ArrowDown")}
+                onMouseUp={() => setMobileMove(null)}
+                onTouchStart={() => setMobileMove("ArrowDown")}
+                onTouchEnd={() => setMobileMove(null)}
+              >
+                ↓
+              </button>
+              <div />
+            </div>
           </div>
         )}
     </div>
