@@ -444,7 +444,7 @@ useEffect(() => {
               <div />
               <button
                 className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
-                style={{ touchAction: 'none', userSelect: 'none' }}
+                style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowUp")}
                 onMouseUp={() => setMobileMove(null)}
                   onTouchStart={(e) => {
@@ -458,7 +458,7 @@ useEffect(() => {
               <div />
               <button
                 className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
-                style={{ touchAction: 'none', userSelect: 'none' }}
+                style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowLeft")}
                 onMouseUp={() => setMobileMove(null)}
                   onTouchStart={(e) => {
@@ -472,7 +472,7 @@ useEffect(() => {
               <div />
               <button
                 className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
-                style={{ touchAction: 'none', userSelect: 'none' }}
+                style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowRight")}
                 onMouseUp={() => setMobileMove(null)}
                   onTouchStart={(e) => {
@@ -486,7 +486,7 @@ useEffect(() => {
               <div />
               <button
                 className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
-                style={{ touchAction: 'none', userSelect: 'none' }}
+                style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowDown")}
                 onMouseUp={() => setMobileMove(null)}
                   onTouchStart={(e) => {
