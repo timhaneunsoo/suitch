@@ -447,7 +447,10 @@ useEffect(() => {
                 style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowUp")}
                 onMouseUp={() => setMobileMove(null)}
-                onTouchStart={() => setMobileMove("ArrowUp")}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    setMobileMove("ArrowUp")
+                  }}
                 onTouchEnd={() => setMobileMove(null)}
               >
                 ↑
@@ -458,7 +461,10 @@ useEffect(() => {
                 style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowLeft")}
                 onMouseUp={() => setMobileMove(null)}
-                onTouchStart={() => setMobileMove("ArrowLeft")}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    setMobileMove("ArrowLeft")
+                  }}
                 onTouchEnd={() => setMobileMove(null)}
               >
                 ←
@@ -469,7 +475,10 @@ useEffect(() => {
                 style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowRight")}
                 onMouseUp={() => setMobileMove(null)}
-                onTouchStart={() => setMobileMove("ArrowRight")}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    setMobileMove("ArrowRight")
+                  }}
                 onTouchEnd={() => setMobileMove(null)}
               >
                 →
@@ -480,7 +489,10 @@ useEffect(() => {
                 style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowDown")}
                 onMouseUp={() => setMobileMove(null)}
-                onTouchStart={() => setMobileMove("ArrowDown")}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    setMobileMove("ArrowDown")
+                  }}
                 onTouchEnd={() => setMobileMove(null)}
               >
                 ↓
