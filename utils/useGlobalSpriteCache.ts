@@ -1,4 +1,3 @@
-// utils/useGlobalSpriteCache.ts
 import { useEffect, useState } from 'react'
 
 const SPRITES = ['dave', 'grace', 'panda', 'shib', 'steve']
