@@ -443,7 +443,8 @@ useEffect(() => {
             <div className="grid grid-cols-3 gap-2">
               <div />
               <button
-                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none touch-none"
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
+                style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowUp")}
                 onMouseUp={() => setMobileMove(null)}
                 onTouchStart={() => setMobileMove("ArrowUp")}
@@ -453,7 +454,8 @@ useEffect(() => {
               </button>
               <div />
               <button
-                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none touch-none"
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
+                style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowLeft")}
                 onMouseUp={() => setMobileMove(null)}
                 onTouchStart={() => setMobileMove("ArrowLeft")}
@@ -463,7 +465,8 @@ useEffect(() => {
               </button>
               <div />
               <button
-                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none touch-none"
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
+                style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowRight")}
                 onMouseUp={() => setMobileMove(null)}
                 onTouchStart={() => setMobileMove("ArrowRight")}
@@ -473,7 +476,8 @@ useEffect(() => {
               </button>
               <div />
               <button
-                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none touch-none"
+                className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
+                style={{ touchAction: 'none', userSelect: 'none' }}
                 onMouseDown={() => setMobileMove("ArrowDown")}
                 onMouseUp={() => setMobileMove(null)}
                 onTouchStart={() => setMobileMove("ArrowDown")}
