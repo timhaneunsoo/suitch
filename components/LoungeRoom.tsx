@@ -9,6 +9,7 @@ import { throttle } from 'lodash'
 import { decor, DecorItem } from '@/utils/decor'
 import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/hooks/use-mobile'
+import DPad from './DPad'
 
 const TILE_SIZE = 32
 const rows = 20
@@ -41,6 +42,7 @@ export default function LoungeRoom({
   const router = useRouter()
   const isMobile = useIsMobile()
   const [mobileMove, setMobileMove] = useState<string | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const mapRef = useRef<HTMLDivElement>(null)
   const playerId = useRef<string>(
@@ -111,98 +113,142 @@ export default function LoungeRoom({
     setShowLibrary(nearSuitch)
   }, [playerPixelX, playerPixelY])
 
-useEffect(() => {
-  const playersRef = ref(db, 'players')
-  const seenMessages = new Map<string, { text: string; timestamp: number }>()
+  useEffect(() => {
+    const playersRef = ref(db, 'players')
+    const seenMessages = new Map<string, { text: string; timestamp: number }>()
 
-  const throttledUpdate = throttle((val: any) => {
-    const now = Date.now()
+    const throttledUpdate = throttle((val: any) => {
+      const now = Date.now()
 
-    const updatedPlayers = Object.entries(val)
-      .filter(([id]) => id !== playerId.current)
-      .map(([id, data]: any) => {
-        if (data.timestamp && now - data.timestamp > 5000) return null
+      const updatedPlayers = Object.entries(val)
+        .filter(([id]) => id !== playerId.current)
+        .map(([id, data]: any) => {
+          if (data.timestamp && now - data.timestamp > 5000) return null
 
-        const existing = seenMessages.get(id)
-        if (data.message && (!existing || existing.timestamp !== data.message.timestamp)) {
-          seenMessages.set(id, data.message)
-          setTimeout(() => {
-            if (seenMessages.get(id)?.timestamp === data.message.timestamp) {
-              seenMessages.set(id, null as any)
-              setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, message: null } : p)))
-            }
-          }, 4000)
-        }
-
-        // Determine correct direction
-        const prevPlayer = players.find((p) => p.id === id)
-        const lastDir = prevPlayer?.dir && prevPlayer.dir !== 'idle' ? prevPlayer.dir : 'front'
-        
-        let dirToUse = data.dir
-        let frameToUse = data.frame ?? 1
-
-        if (data.dir === 'idle') {
-          if (data.frame > 1) {
-            // Force walking animation with last walk direction
-            dirToUse = lastDir || 'front'
-            frameToUse = data.frame
-          } else {
-            // Fully idle
-            dirToUse = 'idle'
-            frameToUse = 1
+          const existing = seenMessages.get(id)
+          if (data.message && (!existing || existing.timestamp !== data.message.timestamp)) {
+            seenMessages.set(id, data.message)
+            setTimeout(() => {
+              if (seenMessages.get(id)?.timestamp === data.message.timestamp) {
+                seenMessages.set(id, null as any)
+                setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, message: null } : p)))
+              }
+            }, 4000)
           }
+
+          // Determine correct direction
+          const prevPlayer = players.find((p) => p.id === id)
+          const lastDir = prevPlayer?.dir && prevPlayer.dir !== 'idle' ? prevPlayer.dir : 'front'
+          
+          let dirToUse = data.dir
+          let frameToUse = data.frame ?? 1
+
+          if (data.dir === 'idle') {
+            if (data.frame > 1) {
+              // Force walking animation with last walk direction
+              dirToUse = lastDir || 'front'
+              frameToUse = data.frame
+            } else {
+              // Fully idle
+              dirToUse = 'idle'
+              frameToUse = 1
+            }
+          }
+
+          console.log(`👤 Remote ${id} → dir: ${dirToUse}, frame: ${frameToUse}, lastDir: ${lastDir}, raw:`, data)
+
+          return {
+            id,
+            ...data,
+            message: seenMessages.get(id),
+            dir: dirToUse,
+            frame: frameToUse,
+          }
+        })
+        .filter(Boolean)
+
+      setPlayers((prevPlayers) => {
+        // Only update if there are actual changes
+        const hasChanges = updatedPlayers.some((newPlayer) => {
+          const prev = prevPlayers.find((p) => p.id === newPlayer.id)
+          return !prev || 
+                prev.x !== newPlayer.x || 
+                prev.y !== newPlayer.y || 
+                prev.dir !== newPlayer.dir ||
+                prev.timestamp !== newPlayer.timestamp
+                prev.frame !== newPlayer.frame
+        })
+        
+        if (!hasChanges && prevPlayers.length === updatedPlayers.length) {
+          return prevPlayers // No changes, return same reference
         }
-
-        console.log(`👤 Remote ${id} → dir: ${dirToUse}, frame: ${frameToUse}, lastDir: ${lastDir}, raw:`, data)
-
-        return {
-          id,
-          ...data,
-          message: seenMessages.get(id),
-          dir: dirToUse,
-          frame: frameToUse,
-        }
+        
+        return updatedPlayers.map((newPlayer) => {
+          const prev = prevPlayers.find((p) => p.id === newPlayer.id)
+          return { ...prev, ...newPlayer }
+        })
       })
-      .filter(Boolean)
+    }, 50) // Throttle Firebase updates to every 50ms
 
-    setPlayers((prevPlayers) => {
-      // Only update if there are actual changes
-      const hasChanges = updatedPlayers.some((newPlayer) => {
-        const prev = prevPlayers.find((p) => p.id === newPlayer.id)
-        return !prev || 
-               prev.x !== newPlayer.x || 
-               prev.y !== newPlayer.y || 
-               prev.dir !== newPlayer.dir ||
-               prev.timestamp !== newPlayer.timestamp
-               prev.frame !== newPlayer.frame
-      })
-      
-      if (!hasChanges && prevPlayers.length === updatedPlayers.length) {
-        return prevPlayers // No changes, return same reference
-      }
-      
-      return updatedPlayers.map((newPlayer) => {
-        const prev = prevPlayers.find((p) => p.id === newPlayer.id)
-        return { ...prev, ...newPlayer }
-      })
+    onValue(playersRef, (snapshot) => {
+      const val = snapshot.val() || {}
+
+      throttledUpdate(val)
     })
-  }, 50) // Throttle Firebase updates to every 50ms
+  }, [])
 
-  onValue(playersRef, (snapshot) => {
-    const val = snapshot.val() || {}
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-    throttledUpdate(val)
-  })
-}, [])
+    const playerRef = ref(db, `players/${playerId.current}`)
 
-useEffect(() => {
-  if (typeof window === 'undefined') return
+    // Automatically remove player from Firebase on disconnect
+    onDisconnect(playerRef).remove()
+  }, [])
 
-  const playerRef = ref(db, `players/${playerId.current}`)
+  const DpadButton = ({
+    dir,
+    label,
+  }: {
+    dir: string
+    label: string
+  }) => (
+    <button
+      className="w-14 h-14 bg-gray-700 text-white rounded-full font-bold text-xl shadow-md active:scale-90 select-none"
+      style={{
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+      }}
+      onMouseDown={() => setMobileMove(dir)}
+      onMouseUp={() => setMobileMove(null)}
+      onTouchStart={(e) => {
+        e.preventDefault()
+        setMobileMove(dir)
+      }}
+      onTouchEnd={() => setMobileMove(null)}
+    >
+      {label}
+    </button>
+  )
 
-  // Automatically remove player from Firebase on disconnect
-  onDisconnect(playerRef).remove()
-}, [])
+  // Repeat movement every 100ms while holding
+  useEffect(() => {
+    if (!iframeRef.current || !mobileMove) return;
+
+    const sendMove = () => {
+      iframeRef.current!.contentWindow?.postMessage(
+        { type: 'MOVE', dir: mobileMove, action: 'start' },
+        '*'
+      );
+    };
+
+    sendMove(); // send first one immediately
+    const interval = setInterval(sendMove, 100); // keep sending every 100ms
+
+    return () => clearInterval(interval); // stop when mobileMove changes or is cleared
+  }, [mobileMove]);
 
   return (
     <div className="w-full h-screen overflow-hidden bg-[#ffedd5] relative">
@@ -313,34 +359,19 @@ useEffect(() => {
                   Samus Shooter
                 </button>
               </li>
-              <li>
+              {/* <li>
                 🕹️{' '}
                 <button
                   onClick={() => {
                     setLoading(true)
                     setTimeout(() => {
-                      setActiveGame('crossy-roads')
-                      setLoading(false)
-                      setGameStarted(false)
+                      router.push('/games/dino-fight/lobby')
                     }, 1000)
-                  }}
-                >
-                  Crossy Roads
-                </button>
-              </li>
-              <li>
-                🕹️{' '}
-                <button
-                  onClick={() => {
-                    setLoading(true)
-                    setTimeout(() => {
-                      router.push('/games/fighting/lobby')
-                    }, 500)
                   }}
                 >
                   Suitch Smash
                 </button>
-              </li>
+              </li> */}
               <li className="text-gray text-center">
                 More games coming soon! 🚀
               </li>
@@ -356,51 +387,106 @@ useEffect(() => {
       )}
 
       {activeGame && (
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-[10000] flex items-center justify-center">
-          <div
-            className="relative w-[1200px] h-[580px] bg-center bg-no-repeat bg-contain"
-            style={{
-              backgroundImage: 'url("/suitch.png")',
-              backgroundSize: '100% 100%',
-            }}
-          >
-            {!gameStarted && (
+        <>
+          {/* Desktop SUITCH frame */}
+          {!isMobile && (
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-[10000] flex items-center justify-center">
               <div
-                className="absolute inset-0 z-20 bg-black/60 flex items-center justify-center cursor-pointer"
-                onClick={() => setGameStarted(true)}
-              >
-                <div className="text-white text-2xl font-bold animate-pulse">▶️ Click to Start Playing</div>
-              </div>
-            )}
-            {gameStarted && (
-              <div
-                className="absolute rounded overflow-hidden shadow-lg border-2 border-black"
+                className="relative w-[1200px] h-[580px] bg-center bg-no-repeat bg-contain"
                 style={{
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '50%',
-                  height: '80%',
+                  backgroundImage: 'url("/suitch.png")',
+                  backgroundSize: '100% 100%',
                 }}
               >
-                <iframe
-                  src={`/games/${activeGame}`}
-                  style={{ width: '100%', height: '100%', border: 'none' }}
-                  allowFullScreen
-                />
+                {!gameStarted && (
+                  <div
+                    className="absolute inset-0 z-20 bg-black/60 flex items-center justify-center cursor-pointer"
+                    onClick={() => setGameStarted(true)}
+                  >
+                    <div className="text-white text-2xl font-bold animate-pulse">▶️ Click to Start Playing</div>
+                  </div>
+                )}
+                {gameStarted && (
+                  <div
+                    className="absolute rounded overflow-hidden shadow-lg border-2 border-black"
+                    style={{
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '50%',
+                      height: '80%',
+                    }}
+                  >
+                    <iframe
+                      src={`/games/${activeGame}`}
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setActiveGame(null)
+                    setGameStarted(false)
+                  }}
+                  className="absolute top right-1 bg-white text-black px-3 py-1 rounded shadow z-10"
+                >
+                  ✖ Exit
+                </button>
               </div>
-            )}
-            <button
-              onClick={() => {
-                setActiveGame(null)
-                setGameStarted(false)
-              }}
-              className="absolute top right-1 bg-white text-black px-3 py-1 rounded shadow z-10"
+            </div>
+          )}
+
+          {/* Mobile Game Boy style */}
+          {isMobile && (
+            <div
+              className="fixed inset-0 z-[10000] bg-black flex flex-col"
+              style={{ height: '100dvh', overflow: 'hidden' }}
             >
-              ✖ Exit
-            </button>
-          </div>
-        </div>
+              {/* Game Area: top half */}
+              <div className="flex-[0_0_60%] relative bg-black">
+                {!gameStarted ? (
+                  <div
+                    className="absolute inset-0 flex justify-center items-center bg-black/60 cursor-pointer"
+                    onClick={() => setGameStarted(true)}
+                  >
+                    <div className="text-white text-xl font-bold animate-pulse">▶️ Tap to Start</div>
+                  </div>
+                ) : (
+                  <iframe
+                    ref={iframeRef}
+                    src={`/games/${activeGame}`}
+                    className="absolute inset-0 w-full h-full border-none"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+
+              {/* Controls: bottom half */}
+              <div className="flex-[0_0_40%] flex flex-col justify-between items-center bg-black px-4 pt-10 pb-10">
+                <div className="grid grid-cols-3 gap-3">
+                  <div />
+                  <DPad
+                    onMove={setMobileMove}
+                    allowed={['up', 'down', 'left', 'right']}
+                  />
+                  <div />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setActiveGame(null)
+                    setGameStarted(false)
+                  }}
+                  className="text-white underline text-sm mt-4"
+                >
+                  ✖ Exit
+                </button>
+              </div>
+            </div>
+          )}
+
+        </>
       )}
 
       {/* Chat Input */}

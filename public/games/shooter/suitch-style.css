@@ -1,20 +1,21 @@
+/* Reset and base styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
+html, body {
+  height: 100vh;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #111;
   color: white;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: auto;
 }
 
-/* Barre du haut */
+/* Top header bar */
 .suitch-header {
   background: rgba(0, 0, 0, 0.6);
   padding: 12px 20px;
@@ -43,34 +44,35 @@ body {
   backdrop-filter: blur(10px);
 }
 
-/* 🎮 Game wrapper and autoscaling canvas */
+/* Game wrapper */
 .game-wrapper {
   flex: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom, #222, #000);
+  align-items: center;
+  background: #111;
 }
 
+/* Canvas container and scaling */
 .canvas-container {
-  width: 100%;
-  height: 100%;
-  max-width: 800px; /* Optional: original width */
-  max-height: 480px;
   aspect-ratio: 800 / 480;
+  width: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 canvas {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
-  object-fit: contain;
-  border: 4px solid white;
   background: #000;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  border: none;
 }
 
-/* Barre du bas */
+/* Footer bar */
 .suitch-footer {
   background: rgba(0, 0, 0, 0.6);
   padding: 12px 20px;
@@ -83,4 +85,11 @@ canvas {
   gap: 40px;
   font-size: 14px;
   color: #ccc;
+}
+
+/* Optional: hide footer on small viewports */
+@media (max-height: 600px) {
+  .suitch-footer {
+    display: none;
+  }
 }

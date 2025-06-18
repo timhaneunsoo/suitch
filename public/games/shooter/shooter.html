@@ -22,45 +22,10 @@
 
   <!-- Main game area (only the canvas) -->
   <main class="game-wrapper">
-    <canvas id="gameCanvas" width="800" height="480"></canvas>
-  </main>
-
-  <!-- UI only shown after game ends -->
-  <div id="postGameUI" style="display: none;">
-    <!-- Leaderboard -->
-    <aside class="leaderboard">
-      <h2>🏆 Leaderboard</h2>
-      <ul class="leaderboard-list" id="leaderboardList">
-        <!-- Scores added dynamically -->
-      </ul>
-    </aside>
-
-    <!-- Footer controls -->
-    <footer class="suitch-footer">
-      <div class="controls">
-        <span>Mouse: Move</span>
-        <span>SPACE: Restart</span>
-        <span>Auto-Fire: Enabled</span>
-      </div>
-      <div class="version-info">
-        Alpha Release • Build 2024.01 • Anti-Cheat Enabled
-      </div>
-    </footer>
-
-    <!-- Name input modal -->
-    <div class="name-input-modal" id="nameInputModal">
-      <div class="name-input-content">
-        <h2>🎉 New High Score!</h2>
-        <div class="score-display">
-          Final Score: <span id="finalScoreDisplay">0</span>
-        </div>
-        <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
-        <br>
-        <button onclick="saveScore()">Save Score</button>
-        <button onclick="skipSave()">Skip</button>
-      </div>
+    <div class="canvas-container">>
+      <canvas id="gameCanvas" width="800" height="480"></canvas>
     </div>
-  </div>
+  </main>
 
   <!-- Scripts -->
   <script src="game-security.js"></script>

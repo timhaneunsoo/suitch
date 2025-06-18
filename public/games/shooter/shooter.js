@@ -1275,6 +1275,35 @@ function init() {
     game.mouseY = (e.clientY - rect.top) * scaleY;
   });
 
+  const pressedKeys = new Map(); // track timers
+
+  window.addEventListener('message', (event) => {
+    const { type, dir, action } = event.data || {};
+    if (type === 'MOVE' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(dir)) {
+      if (action === 'start') {
+        game.keys[dir] = true;
+
+        // Clear any existing timeout
+        if (pressedKeys.has(dir)) clearTimeout(pressedKeys.get(dir));
+
+        // Auto-release after 150ms
+        const timeout = setTimeout(() => {
+          game.keys[dir] = false;
+          pressedKeys.delete(dir);
+        }, 150);
+        pressedKeys.set(dir, timeout);
+      }
+
+      if (action === 'end') {
+        game.keys[dir] = false;
+        if (pressedKeys.has(dir)) {
+          clearTimeout(pressedKeys.get(dir));
+          pressedKeys.delete(dir);
+        }
+      }
+    }
+  });
+
   // Keyboard handling (optional)
   document.addEventListener('keydown', e => {
     if (e.code==='Space') {
@@ -1284,6 +1313,18 @@ function init() {
       }
     } else {
       game.keys[e.code] = true;
+    }
+  });
+  
+  document.addEventListener('click', () => {
+    if (game.gameOver || !game.gameRunning) {
+      restart();
+    }
+  });
+
+  document.addEventListener('touchstart', () => {
+    if (game.gameOver || !game.gameRunning) {
+      restart();
     }
   });
   
