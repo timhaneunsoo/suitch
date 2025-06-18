@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { db } from '@/utils/firebase'
 import { get, ref as dbRef } from 'firebase/database'
-import { startGame } from './dinoGame'
+import { startGame } from './DinoGame'
 import usePlayerInfo from '@/utils/usePlayerInfo'
 
 export default function DinoFightPage() {
