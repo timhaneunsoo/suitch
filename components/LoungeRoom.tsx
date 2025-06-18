@@ -55,6 +55,13 @@ export default function LoungeRoom({
       : ''
   )
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('suitchName', playerName)
+      localStorage.setItem('suitchSprite', spriteName)
+    }
+  }, [playerName, spriteName])
+
   const collisionSet = new Set<string>()
   const added = new Set<string>()
 
@@ -321,19 +328,19 @@ useEffect(() => {
                   Crossy Roads
                 </button>
               </li>
-              {/* <li>
+              <li>
                 🕹️{' '}
                 <button
                   onClick={() => {
                     setLoading(true)
                     setTimeout(() => {
-                      router.push('/games/suitch-madness/lobby')
+                      router.push('/games/fighting/lobby')
                     }, 500)
                   }}
                 >
-                  Suitch Madness
+                  Suitch Smash
                 </button>
-              </li> */}
+              </li>
               <li className="text-gray text-center">
                 More games coming soon! 🚀
               </li>

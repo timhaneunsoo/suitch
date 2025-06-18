@@ -14,11 +14,11 @@ export default function usePlayerInfo() {
     }
     setPlayerId(id)
 
-    // Name
+    // Name (from lounge)
     const name = localStorage.getItem('suitchName') || 'Player'
     setPlayerName(name)
 
-    // Sprite
+    // Sprite (from lounge)
     const sprite = localStorage.getItem('suitchSprite') || 'panda'
     setSpriteName(sprite)
   }, [])

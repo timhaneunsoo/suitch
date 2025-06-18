@@ -1,0 +1,67 @@
+/* page.module.css */
+
+/* 1. Page wrapper: full viewport, black background, center content */
+.page {
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 2. Game area container: enforce 16:9, never exceed viewport */
+.game-wrapper {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0 auto;
+}
+
+/* 3. Canvas itself: fill its wrapper exactly */
+.game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;        /* remove inline whitespace */
+  image-rendering: pixelated;
+}
+
+/* 4. (Optional) Controls area for mobile/gameboy style */
+/* Uncomment/use if you add touch controls below the game */
+/*
+.controls-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(0,0,0,0.7);
+  max-width: 100vw;
+  width: 100%;
+  aspect-ratio: 16 / 6;  // example: bottom third
+}
+*/
+
+/* 5. Media query example: hide controls on desktop */
+/*
+@media (min-width: 768px) {
+  .controls-area {
+    display: none;
+  }
+}
+*/
+
+.sprite-idle {
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: calc(24px * 3) 24px; /* 3 frames, 24px each */
+  animation: idleAnim 0.6s steps(3) infinite;
+  image-rendering: pixelated;
+  margin: 0 auto;
+}
+
+@keyframes idleAnim {
+  from { background-position: 0 0; }
+  to   { background-position: -72px 0; } /* 24px * 3 frames */
+}
