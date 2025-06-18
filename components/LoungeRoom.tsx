@@ -9,7 +9,7 @@ import { throttle } from 'lodash'
 import { decor, DecorItem } from '@/utils/decor'
 import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/hooks/use-mobile'
-import DPad from './DPad'
+import GameControls from './GameControls'
 
 const TILE_SIZE = 32
 const rows = 20
@@ -205,33 +205,6 @@ export default function LoungeRoom({
     // Automatically remove player from Firebase on disconnect
     onDisconnect(playerRef).remove()
   }, [])
-
-  const DpadButton = ({
-    dir,
-    label,
-  }: {
-    dir: string
-    label: string
-  }) => (
-    <button
-      className="w-14 h-14 bg-gray-700 text-white rounded-full font-bold text-xl shadow-md active:scale-90 select-none"
-      style={{
-        touchAction: 'none',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        WebkitTouchCallout: 'none',
-      }}
-      onMouseDown={() => setMobileMove(dir)}
-      onMouseUp={() => setMobileMove(null)}
-      onTouchStart={(e) => {
-        e.preventDefault()
-        setMobileMove(dir)
-      }}
-      onTouchEnd={() => setMobileMove(null)}
-    >
-      {label}
-    </button>
-  )
 
   // Repeat movement every 100ms while holding
   useEffect(() => {
@@ -466,22 +439,38 @@ export default function LoungeRoom({
               <div className="flex-[0_0_40%] flex flex-col justify-between items-center bg-black px-4 pt-10 pb-10">
                 <div className="grid grid-cols-3 gap-3">
                   <div />
-                  <DPad
-                    onMove={setMobileMove}
-                    allowed={['up', 'down', 'left', 'right']}
-                  />
+                    <GameControls
+                      onMove={setMobileMove}
+                      onAction={(btn) => {
+                        if (!iframeRef.current) return
+                        iframeRef.current.contentWindow?.postMessage(
+                          { type: 'ACTION', button: btn },
+                          '*'
+                        )
+                      }}
+                    />
                   <div />
                 </div>
-
-                <button
-                  onClick={() => {
-                    setActiveGame(null)
-                    setGameStarted(false)
-                  }}
-                  className="text-white underline text-sm mt-4"
-                >
-                  ✖ Exit
-                </button>
+                  <button
+                    onClick={() => {
+                      setActiveGame(null)
+                      setGameStarted(false)
+                    }}
+                    className="mt-4"
+                    style={{
+                      touchAction: 'none',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      WebkitTouchCallout: 'none',
+                    }}
+                  >
+                    <img
+                      src="/game-controls/Home_Button.png"
+                      alt="Home"
+                      className="w-10 h-10 mx-auto"
+                      draggable={false}
+                    />
+                  </button>
               </div>
             </div>
           )}
@@ -532,8 +521,8 @@ export default function LoungeRoom({
           </div>
         )}
         {isMobile && !activeGame && (
-          <div className="absolute bottom-20 right-6 z-[9999]">
-            <div className="grid grid-cols-3 gap-2">
+          <div className="absolute bottom-20 left-6 z-[9999]">
+            <div className="grid grid-cols-3 gap-1">
               <div />
               <button
                 className="w-12 h-12 bg-gray-700 bg-opacity-60 text-white rounded-full select-none"
