@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Peach Jump - SUITCH Edition</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top information bar -->
+
+  <!-- Main container with canvas and leaderboard -->
+  <div class="game-container">
+    <!-- Game canvas -->
+    <main class="game-container">
+      <div class="canvas-container">
+        <canvas id="gameCanvas" width="480" height="800"></canvas>
+      </div>
+    </main>
+
+  <!-- Load security FIRST -->
+  <script src="Peach-security.js"></script>
+
+  <!-- Game script -->
+  <script src="Peach.js"></script>
+  
+  <script>
+
+    // Function called by game on game over
+    function onGameOver(finalScore) {
+      setTimeout(() => {
+        handleGameOver("Game over"); // Or pass a reason like "Touched by lava"
+      }, 1000);
+    }
+
+    // === Contrôle du volume général ===
+    // Ce code suppose que Shooter.js expose une variable window.ambianceMusic
+    // ou une fonction globale pour régler tous les sons.
+    let globalGameAudio = null;
+
+    // Tente de récupérer la variable ambianceMusic après le chargement
+    setTimeout(() => {
+      if (window.ambianceMusic) globalGameAudio = window.ambianceMusic;
+    }, 500);
+  </script>
+</body>
+</html>

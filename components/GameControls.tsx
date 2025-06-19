@@ -1,8 +1,8 @@
 'use client'
 
 interface GameControlsProps {
-  onMove: (dir: string | null) => void
-  onAction: (button: 'A' | 'B' | 'X' | 'Y' | null) => void
+  onMove: (dir: string | null, action?: 'start' | 'end') => void
+  onAction: (button: 'A' | 'B' | 'X' | 'Y' | null, action?: 'start' | 'end') => void
 }
 
 export default function GameControls({ onMove, onAction }: GameControlsProps) {
@@ -54,16 +54,16 @@ export default function GameControls({ onMove, onAction }: GameControlsProps) {
       {/* XYAB Buttons Bottom Right */}
       <div className="absolute bottom-20 right-10 w-[160px] h-[160px]">
         <div className="absolute left-1/2 top-[8px] -translate-x-1/2">
-          {createImgBtn('X_Button.png', 'X', () => onAction('X'), () => onAction(null))}
+          {createImgBtn('X_Button.png', 'X', () => onAction('X', 'start'), () => onAction('X', 'end'))}
         </div>
         <div className="absolute left-[8px] top-1/2 -translate-y-1/2">
-          {createImgBtn('Y_Button.png', 'Y', () => onAction('Y'), () => onAction(null))}
+          {createImgBtn('Y_Button.png', 'Y', () => onAction('Y', 'start'), () => onAction('Y', 'end'))}
         </div>
         <div className="absolute right-[8px] top-1/2 -translate-y-1/2">
-          {createImgBtn('A_Button.png', 'A', () => onAction('A'), () => onAction(null))}
+          {createImgBtn('A_Button.png', 'A', () => onAction('A', 'start'), () => onAction('A', 'end'))}
         </div>
         <div className="absolute left-1/2 bottom-[8px] -translate-x-1/2">
-          {createImgBtn('B_Button.png', 'B', () => onAction('B'), () => onAction(null))}
+          {createImgBtn('B_Button.png', 'B', () => onAction('B', 'start'), () => onAction('B', 'end'))}
         </div>
       </div>
     </>

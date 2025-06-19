@@ -10,6 +10,7 @@ import { decor, DecorItem } from '@/utils/decor'
 import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/hooks/use-mobile'
 import GameControls from './GameControls'
+import { gameLibrary } from './gameLibrary'
 
 const TILE_SIZE = 32
 const rows = 20
@@ -223,6 +224,11 @@ export default function LoungeRoom({
     return () => clearInterval(interval); // stop when mobileMove changes or is cleared
   }, [mobileMove]);
 
+  function isPortraitGame(gameId: string | null) {
+    const portraitGames = ['peach-jump', 'flappy-bird', 'vertical-platformer'] // Update with your actual portrait-mode game IDs
+    return portraitGames.includes(gameId ?? '')
+  }
+
   return (
     <div className="w-full h-screen overflow-hidden bg-[#ffedd5] relative">
       <div
@@ -317,37 +323,35 @@ export default function LoungeRoom({
           <div className="bg-gray-900 text-white p-8 rounded-lg shadow-xl w-[400px]">
             <h2 className="text-2xl font-bold mb-6 text-center">🎮 Wanna Play?</h2>
             <ul className="space-y-4 text-lg">
-              <li>
-                🕹️{' '}
-                <button
+              {gameLibrary.map((game) => (
+                <li
+                  key={game.id}
+                  className={`flex items-center ${
+                    game.comingSoon ? 'text-gray' : 'cursor-pointer hover:underline'
+                  }`}
                   onClick={() => {
+                    if (game.comingSoon) return
                     setLoading(true)
                     setTimeout(() => {
-                      setActiveGame('shooter')
+                      if (game.route.includes('/')) {
+                        router.push(`/games/${game.route}`)
+                      } else {
+                        setActiveGame(game.id)
+                        setGameStarted(false)
+                      }
                       setLoading(false)
-                      setGameStarted(false)
                     }, 1000)
                   }}
                 >
-                  Samus Shooter
-                </button>
-              </li>
-              {/* <li>
-                🕹️{' '}
-                <button
-                  onClick={() => {
-                    setLoading(true)
-                    setTimeout(() => {
-                      router.push('/games/dino-fight/lobby')
-                    }, 1000)
-                  }}
-                >
-                  Suitch Smash
-                </button>
-              </li> */}
-              <li className="text-gray text-center">
-                More games coming soon! 🚀
-              </li>
+                  <span>{game.label}</span>
+                  <div className="flex items-center space-x-1 ml-2">
+                    {game.icon && (
+                      <img src={game.icon} alt={`${game.title} icon`} className="w-6 h-6" />
+                    )}
+                    {game.comingSoon && <span className="italic text-sm">Coming soon! 🚀</span>}
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -417,7 +421,14 @@ export default function LoungeRoom({
               style={{ height: '100dvh', overflow: 'hidden' }}
             >
               {/* Game Area: top half */}
-              <div className="flex-[0_0_60%] relative bg-black">
+              <div
+                className="relative bg-black"
+                style={{
+                  flexBasis: isPortraitGame(activeGame) ? '70%' : '60%',
+                  flexGrow: 0,
+                  flexShrink: 0,
+                }}
+              >
                 {!gameStarted ? (
                   <div
                     className="absolute inset-0 flex justify-center items-center bg-black/60 cursor-pointer"
@@ -436,15 +447,22 @@ export default function LoungeRoom({
               </div>
 
               {/* Controls: bottom half */}
-              <div className="flex-[0_0_40%] flex flex-col justify-between items-center bg-black px-4 pt-10 pb-10">
+              <div
+                className="flex flex-col justify-between items-center bg-black px-4 pt-10 pb-10"
+                style={{
+                  flexBasis: isPortraitGame(activeGame) ? '30%' : '40%',
+                  flexGrow: 0,
+                  flexShrink: 0,
+                }}
+              >
                 <div className="grid grid-cols-3 gap-3">
                   <div />
                     <GameControls
                       onMove={setMobileMove}
-                      onAction={(btn) => {
+                      onAction={(btn, action) => {
                         if (!iframeRef.current) return
                         iframeRef.current.contentWindow?.postMessage(
-                          { type: 'ACTION', button: btn },
+                          { type: 'ACTION', button: btn, action },
                           '*'
                         )
                       }}
