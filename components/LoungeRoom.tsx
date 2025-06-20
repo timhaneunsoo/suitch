@@ -44,7 +44,6 @@ export default function LoungeRoom({
   const isMobile = useIsMobile()
   const [mobileMove, setMobileMove] = useState<string | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [showTelegramModal, setShowTelegramModal] = useState(false)
 
   const mapRef = useRef<HTMLDivElement>(null)
   const playerId = useRef<string>(
@@ -230,24 +229,6 @@ export default function LoungeRoom({
     return portraitGames.includes(gameId ?? '')
   }
 
-  useEffect(() => {
-    if (showTelegramModal) {
-      const existing = document.getElementById('telegram-widget-script')
-      if (!existing) {
-        const script = document.createElement('script')
-        script.id = 'telegram-widget-script'
-        script.src = 'https://telegram.org/js/telegram-widget.js?7'
-        script.setAttribute('data-telegram-discussion', 'suitchlounge')
-        script.setAttribute('data-comments-limit', '10')
-        script.setAttribute('data-color', '1E90FF')
-        script.setAttribute('data-dark', '1')
-        script.setAttribute('data-height', '400px')
-        script.async = true
-        document.getElementById('telegram-chat-widget')?.appendChild(script)
-      }
-    }
-  }, [showTelegramModal])
-
   return (
     <div className="w-full h-screen overflow-hidden bg-[#ffedd5] relative">
       <div
@@ -335,28 +316,6 @@ export default function LoungeRoom({
           />
         )}
       </div>
-
-      <button
-        onClick={() => setShowTelegramModal(true)}
-        className="absolute top-4 right-4 z-[9999] bg-white/80 text-black px-4 py-2 rounded shadow hover:bg-white transition"
-      >
-        💬 Telegram
-      </button>
-
-      {showTelegramModal && (
-        <div className="absolute inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white w-[90%] max-w-md p-6 rounded-lg shadow-lg relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-black"
-              onClick={() => setShowTelegramModal(false)}
-            >
-              ✖
-            </button>
-            <h2 className="text-xl font-bold mb-4 text-center">Live Telegram Chat</h2>
-            <div id="telegram-chat-widget" className="w-full flex justify-center" />
-          </div>
-        </div>
-      )}
 
       {/* Game Library */}
       {showLibrary && !activeGame && (
