@@ -17,12 +17,19 @@ export const gameLibrary: GameEntry[] = [
     route: 'shooter',
     icon: '/games/shooter/assets/Character_1.webp',
   },
-{
+  {
     id: 'peach-jump',
     title: 'Peach Jump',
     label: 'Peach Jump',
     route: 'peach-jump',
     icon: '/games/peach-jump/assets/Peach_Powerup2_R.png',
+  },
+  {
+    id: 'dino-run',
+    title: 'Dino Dash',
+    label: 'Dino Dash',
+    route: 'dino-run',
+    icon: '/games/dino-fight/dino.png',
   },
   {
     id: 'dino-smash',
